@@ -1,0 +1,61 @@
+Screens:
+  DEBUG:
+    Properties:
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      OnVisible: |-
+        =Set(varCount, 0);
+        // Stop time = today at 3:00 PM. Use 15 * 60 + 30 for 3:30 PM, etc.
+        Set(varStopAt, DateAdd(Today(), 15 * 60, TimeUnit.Minutes));
+        // Start only if the first click would land before the stop time
+        Set(varTimerOn, DateAdd(Now(), tmrAutoClick.Duration, TimeUnit.Milliseconds) < varStopAt)
+    Children:
+      - tmrAutoClick:
+          Control: Timer@2.1.0
+          Properties:
+            Duration: =5000//60000
+            OnTimerEnd: |-
+              =Select(btnAction);
+              // Stop now if the next countdown would end at or after the stop time
+              If(
+                  DateAdd(Now(), tmrAutoClick.Duration, TimeUnit.Milliseconds) >= varStopAt,
+                  Set(varTimerOn, false)
+              )
+            Repeat: =true
+            Start: =varTimerOn
+            Visible: =false
+      - btnAction:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Height: =50
+            OnSelect: |-
+              =// Safety net: never run the logic at or after the stop time
+              If(
+                  Now() < varStopAt,
+                  Set(varCount, varCount + 1)
+              )
+            Text: ="Action"
+            Width: =200
+            X: =40
+            Y: =40
+      - lblCounter:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="Button selected: " & varCount & " time(s)"
+            Width: =500
+            X: =40
+            Y: =110
+      - lblTimerStatus:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(
+                  varTimerOn,
+                  "Running: next click in " &
+                      RoundUp((tmrAutoClick.Duration - tmrAutoClick.Value) / 1000, 0) &
+                      "s (stops at " & Text(varStopAt, "h:mm AM/PM") & ")",
+                  "Stopped (stop time " & Text(varStopAt, "h:mm AM/PM") & ")"
+              )
+            Width: =500
+            X: =40
+            Y: =160
