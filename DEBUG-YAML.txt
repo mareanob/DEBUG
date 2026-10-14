@@ -1,13 +1,70 @@
-- lblCurrentTime:
-    Control: Label@2.5.1
+Screens:
+  scrReloadTest:
     Properties:
-      Text: |-
-        =// Referencing tmrAutoClick.Value makes the label refresh as the timer ticks
-        "Current time: " & Text(
-            If(tmrAutoClick.Value >= 0, Now()),
-            "h:mm:ss AM/PM"
-        )
-      X: =40
-      Y: =210
-      Width: =500
-      Height: =40
+      OnVisible: |-
+        =Set(varReloads, If(IsBlank(Param("reloads")), 0, Value(Param("reloads"))));
+        // Stop time = today at 6:00 PM. Use 18 * 60 + 30 for 6:30 PM, etc.
+        Set(varReloadStopAt, DateAdd(Today(), 18 * 60, TimeUnit.Minutes));
+        // Start only if the first reload would land before the stop time
+        Set(varReloadOn, DateAdd(Now(), tmrReload.Duration, TimeUnit.Milliseconds) < varReloadStopAt)
+    Children:
+      - tmrReload:
+          Control: Timer@2.1.0
+          Properties:
+            AutoStart: =false
+            Duration: =120000
+            OnTimerEnd: |-
+              =If(
+                  Now() < varReloadStopAt,
+                  Launch(
+                      "PASTE_YOUR_APP_WEB_LINK_HERE",
+                      {screen: "reloadtest", reloads: varReloads + 1},
+                      LaunchTarget.Replace
+                  )
+              );
+              // Stop now if the next countdown would end at or after the stop time
+              If(
+                  DateAdd(Now(), tmrReload.Duration, TimeUnit.Milliseconds) >= varReloadStopAt,
+                  Set(varReloadOn, false)
+              )
+            Repeat: =true
+            Reset: =false
+            Start: =varReloadOn
+            Visible: =false
+      - lblReloadCount:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="Reloads: " & varReloads
+            X: =40
+            Y: =40
+            Width: =500
+            Height: =40
+      - lblReloadStatus:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(
+                  varReloadOn,
+                  "Running: next reload in " &
+                      RoundUp((tmrReload.Duration - tmrReload.Value) / 1000, 0) &
+                      "s (stops at " & Text(varReloadStopAt, "h:mm AM/PM") & ")",
+                  "Stopped (stop time " & Text(varReloadStopAt, "h:mm AM/PM") & ")"
+              )
+            X: =40
+            Y: =90
+            Width: =500
+            Height: =40
+      - lblReloadClock:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =// Referencing tmrReload.Value makes the label refresh as the timer ticks
+              "Current time: " & Text(
+                  If(tmrReload.Value >= 0, Now()),
+                  "h:mm:ss AM/PM"
+              )
+            X: =40
+            Y: =140
+            Width: =500
+            Height: =40
