@@ -1,0 +1,1258 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Event Reporting UI Mock-up</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: review toolbar on top, then the app in a device frame (top bar, step rail, content, footer), build notes underneath.
+   Tokens mirror the gblTheme / gblHex contract so every colour maps 1:1 to the Power Apps theme. */
+:root{
+  --primary:#A2224B; --primary-deep:#7E1739; --primary-soft:#F7E8EE; --primary-ink:#8A1C40; --on-primary:#FFFFFF;
+  --accent-line:#D7B3C1;
+  --ink:#231C1F; --muted:#6C6266; --faint:#988D92;
+  --paper:#F5F2F3; --surface:#FFFFFF; --soft:#FAF8F9; --line:#E5DDE0;
+  --ok:#2E7A4D; --ok-soft:#E5F2EA; --warn:#9A5B00; --warn-soft:#FBEFD9; --alert:#B3261E; --alert-soft:#FBE6E4; --sky:#2C5FC4; --sky-soft:#E6EDFA;
+  --c-safety:#D12B2B; --c-env:#2E8A3E; --c-nerc:#1F3F7A; --c-gen:#C79A00; --c-prop:#C25E00; --c-sec:#B8860B; --c-other:#5E5A5C;
+  --scrim:rgba(24,14,18,.45);
+  --font-body:"Open Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --r-card:14px; --r-ctl:8px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --primary:#C2456C; --primary-deep:#9E2F53; --primary-soft:#3A1E29; --primary-ink:#F2A9C1; --on-primary:#FFFFFF;
+  --accent-line:#5E3B49;
+  --ink:#F3EDEF; --muted:#B8ADB2; --faint:#877C81;
+  --paper:#141012; --surface:#1E191B; --soft:#191416; --line:#362E32;
+  --ok:#62C28E; --ok-soft:#163224; --warn:#E3A650; --warn-soft:#382811; --alert:#F27F75; --alert-soft:#3C1917; --sky:#86A9F2; --sky-soft:#1A253D;
+  --c-safety:#F06A6A; --c-env:#5FBF72; --c-nerc:#7E9EE0; --c-gen:#E8C24A; --c-prop:#F08F3E; --c-sec:#E0B54A; --c-other:#A8A2A5;
+  --scrim:rgba(0,0,0,.6);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --primary:#C2456C; --primary-deep:#9E2F53; --primary-soft:#3A1E29; --primary-ink:#F2A9C1; --on-primary:#FFFFFF;
+  --accent-line:#5E3B49;
+  --ink:#F3EDEF; --muted:#B8ADB2; --faint:#877C81;
+  --paper:#141012; --surface:#1E191B; --soft:#191416; --line:#362E32;
+  --ok:#62C28E; --ok-soft:#163224; --warn:#E3A650; --warn-soft:#382811; --alert:#F27F75; --alert-soft:#3C1917; --sky:#86A9F2; --sky-soft:#1A253D;
+  --c-safety:#F06A6A; --c-env:#5FBF72; --c-nerc:#7E9EE0; --c-gen:#E8C24A; --c-prop:#F08F3E; --c-sec:#E0B54A; --c-other:#A8A2A5;
+  --scrim:rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--font-body);font-size:14px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+.page{max-width:1320px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+
+/* ---------- review chrome ---------- */
+.review-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.review-head h1{margin:0;font-size:22px;font-weight:700;text-wrap:balance}
+.review-head p{margin:4px 0 0;color:var(--muted);max-width:64ch}
+.toolbar{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tool-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tool-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);min-width:72px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--muted)}
+.chip:hover{border-color:var(--accent-line);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--primary-soft);border-color:var(--accent-line);color:var(--primary-ink);font-weight:600}
+
+/* ---------- device / app shell ---------- */
+.page>*{min-width:0}
+.device{min-width:0;width:100%;grid-template-columns:minmax(0,1fr);border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--paper);display:grid;grid-template-rows:56px 1fr auto;height:780px;position:relative;box-shadow:0 10px 30px -18px rgba(60,20,35,.35)}
+.topbar{background:var(--primary);color:var(--on-primary);display:flex;align-items:center;gap:12px;padding:0 18px}
+.brand{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.16);display:grid;place-items:center;flex:0 0 auto}
+.app-title{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.app-title small{display:block;font-weight:500;font-size:11.5px;opacity:.82}
+.topbar .spacer{flex:1}
+.id-pill{border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:3px 10px;font-size:12px;white-space:nowrap}
+.avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);display:grid;place-items:center;font-size:12px;font-weight:700;flex:0 0 auto}
+
+.app-body{min-width:0;display:grid;grid-template-columns:250px minmax(0,1fr);min-height:0}
+.rail{background:var(--surface);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:4px;overflow:auto}
+.rail-head{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:0 8px 8px}
+.step{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;color:var(--muted);font-size:13.5px;border:1px solid transparent;background:none;text-align:left;width:100%}
+.step:hover{background:var(--soft)}
+.step .dot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;flex:0 0 auto;font-size:11px;font-weight:700;color:var(--faint);background:var(--surface)}
+.step.sub{padding-left:22px;font-size:13px}
+.step.sub .dot{width:18px;height:18px;border-width:0}
+.step.sub .dot i{width:8px;height:8px;border-radius:50%;display:block}
+.step.done{color:var(--ink)}
+.step.done .dot{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.step.current{background:var(--primary-soft);border-color:var(--accent-line);color:var(--primary-ink);font-weight:600}
+.step.current .dot{border-color:var(--primary);color:var(--primary)}
+.rail-foot{margin-top:auto;padding:12px 8px 0;border-top:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.rail-foot .saved{display:flex;align-items:center;gap:6px;color:var(--ok)}
+
+.content{overflow-y:auto;overflow-x:hidden;padding:24px 28px;min-width:0}
+.content-inner{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.footer{background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:12px 18px}
+.footer .grow{flex:1}
+.footer .hint{font-size:12.5px;color:var(--muted)}
+
+.mobile-step{display:none}
+
+/* ---------- shared pieces ---------- */
+.screen{display:flex;flex-direction:column;gap:18px}
+.screen[hidden]{display:none!important}
+.title-block h2{margin:0;font-size:21px;font-weight:700;text-wrap:balance}
+.title-block p{margin:4px 0 0;color:var(--muted);max-width:70ch}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--primary-ink);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:20px 22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card-head{display:flex;align-items:center;gap:12px}
+.card-head h3{margin:0;font-size:15.5px;font-weight:700}
+.card-head p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.icon-tile{width:40px;height:40px;border-radius:11px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;flex:0 0 auto}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.field>.lbl{font-size:12.5px;font-weight:600;color:var(--ink)}
+.field .req{color:var(--alert);font-weight:700}
+.field .help{font-size:12px;color:var(--muted)}
+.input{height:40px;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--surface);padding:0 12px;width:100%}
+.input:hover{border-color:var(--accent-line)}
+.input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+textarea.input{height:auto;min-height:110px;padding:10px 12px;resize:vertical;line-height:1.5}
+.select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 17px,calc(100% - 13px) 17px;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--soft);color:var(--muted)}
+.pill .d{width:7px;height:7px;border-radius:50%}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.alert{background:var(--alert-soft);color:var(--alert)}
+.pill.sky{background:var(--sky-soft);color:var(--sky)}
+.pill.brand{background:var(--primary-soft);color:var(--primary-ink)}
+
+.btn{height:40px;border-radius:var(--r-ctl);padding:0 18px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;white-space:nowrap}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-primary:hover{background:var(--primary-deep)}
+.btn-outline{background:transparent;border-color:var(--accent-line);color:var(--primary-ink)}
+.btn-outline:hover{background:var(--primary-soft)}
+.btn-quiet{background:transparent;color:var(--muted);border-color:var(--line)}
+.btn-quiet:hover{color:var(--ink);background:var(--soft)}
+.btn-sm{height:32px;padding:0 12px;font-size:13px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r-ctl);padding:3px;background:var(--soft);gap:3px;flex-wrap:wrap}
+.seg button{border:0;background:none;border-radius:6px;padding:6px 14px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);outline:1px solid var(--line)}
+
+.toggle{display:inline-flex;align-items:center;gap:10px;border:0;background:none;padding:0;font-size:13px;color:var(--ink)}
+.toggle .trk{width:40px;height:22px;border-radius:11px;background:var(--line);position:relative;transition:background .15s;flex:0 0 auto}
+.toggle .trk::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle[aria-pressed="true"] .trk{background:var(--primary)}
+.toggle[aria-pressed="true"] .trk::after{left:21px}
+
+.note{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;background:var(--soft)}
+.note.sky{background:var(--sky-soft);border-color:transparent;color:var(--ink)}
+.note.warn{background:var(--warn-soft);border-color:transparent}
+.note.alert{background:var(--alert-soft);border-color:transparent}
+.note svg{flex:0 0 auto;margin-top:1px}
+.divider{height:1px;background:var(--line);border:0;margin:0}
+
+/* start */
+.choice-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.choice{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--surface);display:flex;gap:12px;align-items:flex-start;text-align:left}
+.choice:hover{border-color:var(--accent-line)}
+.choice[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft)}
+.choice b{display:block;font-size:14.5px}
+.choice span{font-size:12.5px;color:var(--muted)}
+.draft{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.draft:first-of-type{border-top:0}
+.draft .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.draft .m{grid-column:1;font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.draft .btn{grid-row:1/3;grid-column:2}
+
+/* guidance */
+.guide{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
+.guide h4{margin:0;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.guide h4 i{width:10px;height:10px;border-radius:3px;display:block}
+.guide p{margin:0;font-size:12.5px;color:var(--muted)}
+
+/* classification tiles */
+.tile{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface);display:flex;gap:12px;align-items:center;text-align:left;position:relative;min-height:74px}
+.tile:hover{border-color:var(--accent-line)}
+.tile .ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;background:var(--soft);border:1px solid var(--line)}
+.tile b{display:block;font-size:14px}
+.tile span{font-size:12px;color:var(--muted)}
+.tile .box{margin-left:auto;width:22px;height:22px;border-radius:6px;border:2px solid var(--accent-line);display:grid;place-items:center;flex:0 0 auto;color:var(--on-primary)}
+.tile[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft)}
+.tile[aria-pressed="true"] .box{background:var(--primary);border-color:var(--primary)}
+.tile .box svg{opacity:0}
+.tile[aria-pressed="true"] .box svg{opacity:1}
+
+/* section screen */
+.section-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
+.radio-list{display:flex;flex-direction:column;gap:8px}
+.radio{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--surface);display:flex;gap:10px;align-items:center;text-align:left;width:100%}
+.radio:hover{border-color:var(--accent-line)}
+.radio .o{width:18px;height:18px;border-radius:50%;border:2px solid var(--accent-line);flex:0 0 auto;display:grid;place-items:center}
+.radio[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft)}
+.radio[aria-pressed="true"] .o{border-color:var(--primary)}
+.radio[aria-pressed="true"] .o::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary)}
+.radio .lbl{font-size:13.5px;font-weight:500}
+.radio .tag{margin-left:auto}
+.req-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.req-row:first-child{border-top:0;padding-top:0}
+.req-row a{color:var(--primary-ink);font-weight:600;text-decoration:none}
+.req-row a:hover{text-decoration:underline}
+.req-row .sub{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.group-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.qty{display:grid;grid-template-columns:minmax(0,1fr) 120px 140px;gap:10px;align-items:end;padding:12px 0;border-top:1px solid var(--line)}
+.qty:first-of-type{border-top:0;padding-top:0}
+.qty .q{font-size:13.5px;font-weight:500;align-self:center}
+.class-chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:4px 12px 4px 6px;background:var(--surface);font-size:12.5px;font-weight:700;color:var(--ink)}
+.class-chip i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.ack{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ack-head{background:var(--alert-soft);color:var(--alert);padding:10px 14px;font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.ack-body{padding:14px;display:flex;flex-direction:column;gap:12px;font-size:13px}
+
+/* notices + acknowledgement pop-up */
+.notice-slot{display:flex;flex-direction:column;gap:8px}
+.notice-slot:empty{display:none}
+.notice-chips{display:flex;flex-wrap:wrap;gap:8px}
+.notice-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 8px;background:var(--surface);font-size:12.5px;font-weight:600;color:var(--ink)}
+.notice-chip:hover{border-color:var(--accent-line)}
+.notice-chip svg{flex:0 0 auto}
+.notice-chip .ackd{color:var(--ok);font-weight:600;font-size:11.5px}
+.dialog.ack-dlg{width:min(500px,100%);padding:0;overflow:hidden;gap:0}
+.ack-dlg .ack-top{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.ack-dlg .ack-top .icon-tile.alert{background:var(--alert-soft);color:var(--alert)}
+.ack-dlg .ack-top .icon-tile.warn{background:var(--warn-soft);color:var(--warn)}
+.ack-dlg .ack-top .icon-tile.sky{background:var(--sky-soft);color:var(--sky)}
+.ack-dlg .count{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.ack-dlg h3{margin:2px 0 0;font-size:16.5px}
+.ack-dlg .ack-msg{padding:18px 20px;font-size:14px;line-height:1.55;display:flex;flex-direction:column;gap:10px}
+.ack-dlg .ack-msg p{margin:0;color:var(--ink)}
+.ack-dlg .ack-foot{display:flex;align-items:center;gap:12px;padding:14px 20px;border-top:1px solid var(--line);background:var(--soft)}
+.ack-dots{display:flex;gap:6px;flex:1}
+.ack-dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
+.ack-dots i.on{background:var(--primary)}
+.ack-dots i.seen{background:var(--ok)}
+
+/* attachments */
+.drop{border:1.5px dashed var(--accent-line);border-radius:12px;padding:22px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;background:var(--soft)}
+.drop b{display:block}
+.drop span{font-size:12.5px;color:var(--muted)}
+.file{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.file:first-child{border-top:0;padding-top:0}
+.thumb{width:52px;height:52px;border-radius:10px;border:1px solid var(--line);overflow:hidden;display:grid;place-items:center;background:var(--soft)}
+.file .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file .meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.file .opts{grid-column:2/-1;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.file .opts .input{max-width:360px;height:36px}
+.bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden;width:160px;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;width:62%;background:var(--primary);border-radius:2px;animation:grow 1.6s ease-in-out infinite alternate}
+@keyframes grow{from{width:20%}to{width:85%}}
+
+/* actions */
+.task{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--surface);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px}
+.task h4{margin:0;font-size:14px}
+.task p{margin:0;font-size:12.5px;color:var(--muted);grid-column:1}
+.task .who{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);grid-column:1}
+.task .who .av{width:24px;height:24px;border-radius:50%;background:var(--sky-soft);color:var(--sky);display:grid;place-items:center;font-size:10.5px;font-weight:700}
+.task .acts{grid-row:1/4;grid-column:2;display:flex;gap:6px;align-items:flex-start}
+.icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--muted)}
+.icon-btn:hover{color:var(--ink);border-color:var(--accent-line)}
+
+/* review */
+.timeline{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:4px}
+.tl{flex:1 1 0;min-width:96px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;text-align:center;font-size:11.5px;color:var(--muted)}
+.tl::before{content:"";position:absolute;top:10px;left:-50%;right:50%;height:2px;background:var(--line)}
+.tl:first-child::before{display:none}
+.tl .n{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:var(--surface);position:relative;z-index:1;display:grid;place-items:center}
+.tl.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
+.tl.done::before{background:var(--ok)}
+.tl.now .n{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}
+.tl.now{color:var(--primary-ink);font-weight:700}
+.sum-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sum-head h3{margin:0;font-size:15px}
+.kv{display:grid;grid-template-columns:200px minmax(0,1fr);gap:10px 18px;font-size:13.5px}
+.kv dt{color:var(--muted);font-weight:600;font-size:12.5px}
+.kv dd{margin:0}
+.ans{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px;padding:10px 0;border-top:1px solid var(--line);font-size:13px}
+.ans:first-of-type{border-top:0}
+.ans .q{color:var(--muted)}
+.check{display:flex;align-items:center;gap:8px;font-size:13px}
+
+/* closing */
+.done-wrap{display:grid;place-items:center;min-height:520px}
+.done-card{max-width:460px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.done-card h2{margin:0;font-size:22px}
+.done-card p{margin:0;color:var(--muted)}
+
+/* overlays (inside device) */
+.overlay{position:absolute;inset:0;z-index:20;display:grid;place-items:center;padding:16px}
+.overlay[hidden]{display:none!important}
+.overlay .scrim{position:absolute;inset:0;background:var(--scrim);backdrop-filter:blur(3px)}
+.dialog{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 22px;width:min(460px,100%);display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 60px -20px rgba(0,0,0,.45)}
+.dialog h3{margin:0;font-size:16.5px}
+.dialog p{margin:0;color:var(--muted);font-size:13.5px}
+.dialog .foot{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.busy-art{position:relative;width:min(360px,100%)}
+.busy-art svg{width:100%;height:auto;display:block}
+.banner{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:15;width:min(620px,calc(100% - 32px));background:var(--surface);border:1px solid var(--line);border-left:0;border-radius:12px;box-shadow:0 14px 40px -18px rgba(0,0,0,.4);display:flex;gap:12px;align-items:flex-start;padding:12px 14px;overflow:hidden}
+.banner[hidden]{display:none!important}
+.banner::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--alert)}
+.banner b{display:block;font-size:13.5px}
+.banner span{font-size:12.5px;color:var(--muted)}
+.banner .x{margin-left:auto}
+
+/* build notes */
+.notes{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.notes h2{margin:0;font-size:15px}
+.notes ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;color:var(--ink);font-size:13.5px;max-width:110ch}
+.notes code{font-family:var(--font-mono);font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:0 5px}
+.notes .sub{color:var(--muted);font-size:12.5px;margin:0}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1080px){
+  .section-grid{grid-template-columns:minmax(0,1fr)}
+  .grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width: 860px){
+  .app-body{grid-template-columns:minmax(0,1fr)}
+  .rail{display:none}
+  .mobile-step{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line);font-size:13px}
+  .mobile-step .track{flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+  .mobile-step .track i{display:block;height:100%;background:var(--primary)}
+  .device{grid-template-rows:56px auto 1fr auto;height:820px}
+  .app-title small{display:none}
+}
+@media (max-width: 640px){
+  .grid2,.grid3,.choice-row{grid-template-columns:minmax(0,1fr)}
+  .content{padding:18px 16px}
+  .kv{grid-template-columns:minmax(0,1fr)}
+  .kv dt{margin-top:6px}
+  .qty{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .qty .q{grid-column:1/-1}
+  .ans{grid-template-columns:minmax(0,1fr)}
+  .footer{flex-wrap:wrap}
+  .footer .hint{display:none}
+  .footer .grow{display:none}
+  .footer .btn{flex:1 1 0}
+  .id-pill{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></g></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></g></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><path d="M20 11.5l-8.2 8.2a5 5 0 01-7.1-7.1l8.5-8.5a3.3 3.3 0 014.7 4.7l-8.4 8.4a1.7 1.7 0 01-2.4-2.4l7.6-7.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6 21V4M6 4h10l-2 4 2 4H6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></g></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/></g></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14M5 19l7-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M8 6h8M7 8l4 8M17 8l-4 8"/></g></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 8-11h-6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9H4zM10 20v-5h4v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></g></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></g></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></g></symbol>
+    <symbol id="i-people" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5M16 5.5a3 3 0 010 5.6M18 14c1.4.6 2.3 2.2 2.6 4.5"/></g></symbol>
+  </defs>
+</svg>
+
+<div class="page">
+  <header class="review-head">
+    <div>
+      <h1>Event Reporting app · new UI</h1>
+      <p>Click through every screen with the controls below, or use the buttons inside the app. All names and figures are sample data. The same pages are also laid out for a phone.</p>
+    </div>
+  </header>
+
+  <div class="toolbar" role="region" aria-label="Mock-up controls">
+    <div class="tool-row" id="screenChips">
+      <span class="tool-label">Screen</span>
+    </div>
+    <div class="tool-row" id="variantRow">
+      <span class="tool-label">Section</span>
+      <button class="chip" data-variant="safety">Safety</button>
+      <button class="chip" data-variant="env">Environmental</button>
+      <button class="chip" data-variant="gen">Generation</button>
+      <button class="chip" data-variant="sec">Security</button>
+      <span style="font-size:12px;color:var(--faint);margin-left:4px">One screen, filled from the classification</span>
+    </div>
+    <div class="tool-row">
+      <span class="tool-label">States</span>
+      <button class="chip" id="showBusy">Saving cover</button>
+      <button class="chip" id="showCancel">Leave dialog</button>
+      <button class="chip" id="showError">Save error</button>
+      <button class="chip" id="showAck">Category pop-up</button>
+      <span class="tool-label" style="margin-left:12px">Theme</span>
+      <button class="chip" data-theme-btn="light">Light</button>
+      <button class="chip" data-theme-btn="dark">Dark</button>
+    </div>
+  </div>
+
+  <!-- ===================== THE APP ===================== -->
+  <div class="device" id="device">
+    <div class="topbar">
+      <div class="brand"><svg width="18" height="18" style="color:var(--on-primary)"><use href="#i-flag"/></svg></div>
+      <div class="app-title">Event Analysis Management System<small id="topSub">Riverside Generating Station</small></div>
+      <div class="spacer"></div>
+      <span class="id-pill mono" id="topId">RGS-2026-014 · Draft</span>
+      <div class="avatar" title="Jordan Lee">JL</div>
+    </div>
+
+    <div class="mobile-step"><b id="mStepName">Event details</b><span id="mStepCount" style="color:var(--muted)">Step 1 of 9</span><div class="track"><i id="mStepBar" style="width:11%"></i></div></div>
+
+    <div class="app-body">
+      <nav class="rail" aria-label="Report steps" id="rail">
+        <div class="rail-head">Your report</div>
+        <button class="step" data-go="details"><span class="dot">1</span>Event details</button>
+        <button class="step" data-go="classes"><span class="dot">2</span>Classifications</button>
+        <button class="step sub" data-go="section" data-v="safety"><span class="dot"><i style="background:var(--c-safety)"></i></span>Safety</button>
+        <button class="step sub" data-go="section" data-v="env"><span class="dot"><i style="background:var(--c-env)"></i></span>Environmental</button>
+        <button class="step sub" data-go="section" data-v="gen"><span class="dot"><i style="background:var(--c-gen)"></i></span>Generation</button>
+        <button class="step sub" data-go="section" data-v="sec"><span class="dot"><i style="background:var(--c-sec)"></i></span>Security</button>
+        <button class="step" data-go="attach"><span class="dot">3</span>Attachments</button>
+        <button class="step" data-go="actions"><span class="dot">4</span>Long-term actions</button>
+        <button class="step" data-go="review"><span class="dot">5</span>Review &amp; submit</button>
+        <div class="rail-foot">
+          <span class="saved"><svg width="14" height="14"><use href="#i-check"/></svg>All changes saved</span>
+          <span>Last saved 10:42 AM</span>
+        </div>
+      </nav>
+
+      <main class="content" id="content">
+        <div class="content-inner">
+
+          <!-- START -->
+          <section class="screen" data-screen="start">
+            <div class="title-block">
+              <h2>Good morning, Jordan</h2>
+              <p>Report something that happened on site, or pick up a report you already started.</p>
+            </div>
+            <div class="grid2" style="align-items:start">
+              <div class="card">
+                <div class="choice-row" id="startChoice">
+                  <button class="choice" aria-pressed="true" data-start="new">
+                    <span class="icon-tile"><svg width="20" height="20"><use href="#i-plus"/></svg></span>
+                    <span><b>Report a new event</b><span>Takes about 10 minutes</span></span>
+                  </button>
+                  <button class="choice" aria-pressed="false" data-start="draft">
+                    <span class="icon-tile"><svg width="20" height="20"><use href="#i-doc"/></svg></span>
+                    <span><b>Continue a draft</b><span>You have 2 drafts</span></span>
+                  </button>
+                </div>
+                <hr class="divider">
+                <div class="grid2">
+                  <div class="field"><label for="evDate">When did it happen? <span class="req">*</span></label><input class="input" id="evDate" type="date" value="2026-11-03"></div>
+                  <div class="field"><label for="evPlant">Plant <span class="req">*</span></label>
+                    <select class="input select" id="evPlant"><option>Riverside Generating Station (RGS)</option><option>Lakeview Energy Center (LEC)</option><option>Prairie Wind Farm (PWF)</option></select>
+                  </div>
+                </div>
+                <p class="help" style="margin:0;font-size:12px;color:var(--muted)">The Event ID is created when you continue. The plant can't be changed after that.</p>
+                <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary" data-go="guide">Start report<svg width="16" height="16"><use href="#i-next"/></svg></button></div>
+              </div>
+
+              <div class="card">
+                <div class="card-head" style="justify-content:space-between">
+                  <div><h3>Your drafts</h3><p>Only reports you started are shown</p></div>
+                  <a href="#" class="btn btn-quiet btn-sm" onclick="return false">Browse fleet events</a>
+                </div>
+                <div>
+                  <div class="draft">
+                    <span class="t">Contractor slipped on wet stairwell, Unit 2</span>
+                    <span class="m"><span class="mono">RGS-2026-014</span><span class="pill brand">Stopped at Environmental</span><span>Edited today</span></span>
+                    <button class="btn btn-outline btn-sm" data-go="section" data-v="env">Resume</button>
+                  </div>
+                  <div class="draft">
+                    <span class="t">Cooling tower fan trip during load ramp</span>
+                    <span class="m"><span class="mono">RGS-2026-011</span><span class="pill">Stopped at Attachments</span><span>Edited 28 Oct</span></span>
+                    <button class="btn btn-outline btn-sm" data-go="attach">Resume</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- GUIDANCE -->
+          <section class="screen" data-screen="guide" hidden>
+            <div class="title-block">
+              <div class="eyebrow">Before you start</div>
+              <h2>Does this event need a report?</h2>
+              <p>Most events do. These are the exceptions for each classification. If you're not sure, report it and your Plant Manager will decide.</p>
+            </div>
+            <div class="grid3">
+              <div class="guide"><h4><i style="background:var(--c-safety)"></i>Safety</h4><p>Not needed for HR-sensitive matters such as a fitness-for-duty violation, LOTO removal approved by the Plant Manager, or low-consequence clerical items.</p></div>
+              <div class="guide"><h4><i style="background:var(--c-env)"></i>Environmental</h4><p>Not needed for administrative or clerical items of low consequence, at the Plant Manager's discretion.</p></div>
+              <div class="guide"><h4><i style="background:var(--c-gen)"></i>Generation</h4><p>Not needed for trips or run-backs with a known cause restored quickly, recurring issues already reported, or loss under 25% of one day's full output.</p></div>
+              <div class="guide"><h4><i style="background:var(--c-nerc)"></i>NERC</h4><p>Not needed for administrative or clerical items of low consequence, at the Plant Manager's discretion.</p></div>
+              <div class="guide"><h4><i style="background:var(--c-prop)"></i>Property damage</h4><p>Not needed when the total estimated damage is less than $25,000.</p></div>
+              <div class="guide"><h4><i style="background:var(--c-sec)"></i>Security</h4><p>Reported at the Plant Manager's discretion. Some categories need immediate notice.</p></div>
+            </div>
+            <div class="note sky"><svg width="18" height="18" style="color:var(--sky)"><use href="#i-info"/></svg><span>Outage delays and lost generation coming out of an outage only need a report if the Plant Director asks for one.</span></div>
+          </section>
+
+          <!-- DETAILS -->
+          <section class="screen" data-screen="details" hidden>
+            <div class="title-block">
+              <div class="eyebrow">Event details</div>
+              <h2>What happened?</h2>
+              <p>Describe the event as you'd explain it to someone who wasn't there.</p>
+            </div>
+            <div class="card">
+              <div class="grid3">
+                <div class="field"><span class="lbl">Event ID</span><span class="mono" style="font-size:14px">RGS-2026-014</span></div>
+                <div class="field"><span class="lbl">Plant</span><span>Riverside Generating Station</span></div>
+                <div class="field"><span class="lbl">Event date</span><span>3 Nov 2026</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="field"><label for="dTitle">Event title <span class="req">*</span></label><input class="input" id="dTitle" value="Contractor slipped on wet stairwell, Unit 2" maxlength="120"><span class="help">A short headline. This is what people see in lists and emails.</span></div>
+              <div class="field"><label for="dDesc">Description and immediate actions <span class="req">*</span></label>
+                <textarea class="input" id="dDesc" rows="5">At 07:40 a contractor slipped on the Unit 2 north stairwell between levels 2 and 3. Water from a leaking condensate line had pooled on the landing. He grabbed the rail and did not fall. The area was barricaded, the leak isolated and the landing dried. Maintenance raised a work order for the line.</textarea>
+              </div>
+              <div class="grid2">
+                <div class="field"><span class="lbl">Do we know the cause? <span class="req">*</span></span>
+                  <div class="seg" id="causeSeg"><button aria-pressed="true" data-cause="yes">Yes, cause is known</button><button aria-pressed="false" data-cause="no">Not yet</button></div>
+                </div>
+                <div class="field" id="causeNoNote" hidden><span class="lbl">&nbsp;</span><div class="note"><svg width="16" height="16" style="color:var(--muted)"><use href="#i-info"/></svg><span>A follow-up task will be created and assigned to you.</span></div></div>
+              </div>
+              <div class="field" id="causeField"><label for="dCause">Cause <span class="req">*</span></label><textarea class="input" id="dCause" rows="3">Failed gasket on the condensate drain line above the landing.</textarea></div>
+              <div class="field"><label for="dImpact">Business impact</label><textarea class="input" id="dImpact" rows="3" placeholder="Optional. Cost, lost time or anything else the business should know."></textarea></div>
+            </div>
+          </section>
+
+          <!-- CLASSIFICATIONS -->
+          <section class="screen" data-screen="classes" hidden>
+            <div class="title-block">
+              <div class="eyebrow">Classifications</div>
+              <h2>How would you classify it?</h2>
+              <p>Pick everything that applies. You'll answer a short section for each one.</p>
+            </div>
+            <div class="grid2" id="classTiles">
+              <button class="tile" aria-pressed="true"><span class="ico" style="color:var(--c-safety)"><svg width="20" height="20"><use href="#i-shield"/></svg></span><span><b>Safety</b><span>Injuries, near misses, unsafe conditions</span></span><span class="box"><svg width="14" height="14"><use href="#i-check"/></svg></span></button>
+              <button class="tile" aria-pressed="true"><span class="ico" style="color:var(--c-env)"><svg width="20" height="20"><use href="#i-leaf"/></svg></span><span><b>Environmental</b><span>Releases, permits, agency reporting</span></span><span class="box"><svg width="14" height="14"><use href="#i-check"/></svg></span></button>
+              <button class="tile" aria-pressed="false"><span class="ico" style="color:var(--c-nerc)"><svg width="20" height="20"><use href="#i-grid"/></svg></span><span><b>NERC</b><span>Reliability standards and compliance</span></span><span class="box"><svg width="14" height="14"><use href="#i-check"/></svg></span></button>
+              <button class="tile" aria-pressed="true"><span class="ico" style="color:var(--c-gen)"><svg width="20" height="20"><use href="#i-bolt"/></svg></span><span><b>Generation</b><span>Trips, derates, lost generation</span></span><span class="box"><svg width="14" height="14"><use href="#i-check"/></svg></span></button>
+              <button class="tile" aria-pressed="false"><span class="ico" style="color:var(--c-prop)"><svg width="20" height="20"><use href="#i-home"/></svg></span><span><b>Property damage</b><span>Damage to equipment or buildings</span></span><span class="box"><svg width="14" height="14"><use href="#i-check"/></svg></span></button>
+              <button class="tile" aria-pressed="true"><span class="ico" style="color:var(--c-sec)"><svg width="20" height="20"><use href="#i-lock"/></svg></span><span><b>Security</b><span>Physical or cyber security</span></span><span class="box"><svg width="14" height="14"><use href="#i-check"/></svg></span></button>
+              <button class="tile" aria-pressed="false"><span class="ico" style="color:var(--c-other)"><svg width="20" height="20"><use href="#i-dots"/></svg></span><span><b>Other</b><span>Anything that doesn't fit above</span></span><span class="box"><svg width="14" height="14"><use href="#i-check"/></svg></span></button>
+            </div>
+            <div class="note" id="classCount"><svg width="16" height="16" style="color:var(--primary)"><use href="#i-info"/></svg><span><b>4 sections to complete:</b> Safety, Environmental, Generation, Security.</span></div>
+          </section>
+
+          <!-- SECTION (one screen, four variants) -->
+          <section class="screen" data-screen="section" hidden>
+            <!-- Safety -->
+            <div class="variant" data-variant="safety">
+              <div class="screen">
+                <div class="title-block">
+                  <span class="class-chip"><i style="background:var(--c-safety)"><svg width="12" height="12"><use href="#i-shield"/></svg></i>Safety</span>
+                  <h2 style="margin-top:10px">Which best describes the safety side of this event?</h2>
+                  <p>Pick one. What we need from you appears on the right.</p>
+                </div>
+                <div class="section-grid">
+                  <div class="card">
+                    <div class="group-label">Category</div>
+                    <div class="radio-list" data-radio>
+                      <button class="radio" aria-pressed="false"><span class="o"></span><span class="lbl">First aid</span></button>
+                      <button class="radio" aria-pressed="true" data-ack="nearmiss"><span class="o"></span><span class="lbl">Near miss</span></button>
+                      <button class="radio" aria-pressed="false" data-ack="recordable"><span class="o"></span><span class="lbl">Recordable injury</span><span class="tag pill alert">Immediate notice</span></button>
+                      <button class="radio" aria-pressed="false" data-ack="losttime"><span class="o"></span><span class="lbl">Lost time injury</span><span class="tag pill alert">Immediate notice</span></button>
+                      <button class="radio" aria-pressed="false"><span class="o"></span><span class="lbl">Unsafe condition</span></button>
+                    </div>
+                    <div class="notice-slot"></div>
+                  </div>
+                  <div class="card">
+                    <div class="card-head"><span class="icon-tile"><svg width="20" height="20"><use href="#i-doc"/></svg></span><div><h3>Near miss: what we need</h3><p>Saved when you continue</p></div></div>
+                    <div class="group-label">Forms</div>
+                    <div>
+                      <div class="req-row">
+                        <a href="#" onclick="return false">First Aid / Near Miss Report (SF-102)</a>
+                        <button class="toggle" aria-pressed="true" data-toggle data-show="#f1date"><span class="trk"></span>Sent</button>
+                        <div class="sub" id="f1date"><span style="font-size:12.5px;color:var(--muted)">Sent on</span><input class="input" type="date" value="2026-11-03" style="width:170px;height:36px"></div>
+                      </div>
+                    </div>
+                    <div class="group-label">Questions</div>
+                    <div class="field"><label for="q1">Was the right PPE being worn?</label><select class="input select" id="q1"><option>Yes</option><option>No</option><option>Not applicable</option></select></div>
+                    <div class="field"><label for="q2">Contributing factors</label><select class="input select" id="q2"><option>Housekeeping; Leaking equipment</option><option>Housekeeping</option><option>Leaking equipment</option></select><span class="help">You can pick more than one</span></div>
+                    <div class="note sky"><svg width="16" height="16" style="color:var(--sky)"><use href="#i-info"/></svg><span>Near misses are shared at the next site safety meeting. Remove names from photos before attaching them.</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Environmental -->
+            <div class="variant" data-variant="env" hidden>
+              <div class="screen">
+                <div class="title-block">
+                  <span class="class-chip"><i style="background:var(--c-env)"><svg width="12" height="12"><use href="#i-leaf"/></svg></i>Environmental</span>
+                  <h2 style="margin-top:10px">Pick the environmental category</h2>
+                  <p>Your saved answers are filled back in when you reopen a draft.</p>
+                </div>
+                <div class="section-grid">
+                  <div class="card">
+                    <div class="group-label">Category</div>
+                    <div class="radio-list" data-radio>
+                      <button class="radio" aria-pressed="true" data-ack="agency"><span class="o"></span><span class="lbl">Agency reportable</span><span class="tag pill warn">Compliance review</span></button>
+                      <button class="radio" aria-pressed="false"><span class="o"></span><span class="lbl">Permit deviation, not reportable</span></button>
+                      <button class="radio" aria-pressed="false"><span class="o"></span><span class="lbl">Spill or release</span></button>
+                      <button class="radio" aria-pressed="false"><span class="o"></span><span class="lbl">Waste handling</span></button>
+                    </div>
+                    <div class="notice-slot"></div>
+                  </div>
+                  <div class="card">
+                    <div class="card-head"><span class="icon-tile"><svg width="20" height="20"><use href="#i-doc"/></svg></span><div><h3>Agency reportable: what we need</h3><p>Restored from your last save</p></div><span class="pill ok" style="margin-left:auto"><span class="d" style="background:var(--ok)"></span>Saved</span></div>
+                    <div class="group-label">Questions</div>
+                    <div class="field"><label for="e1">Type of agency reportable event <span class="req">*</span></label><select class="input select" id="e1"><option>CIP</option><option>Air permit exceedance</option><option>Water discharge exceedance</option></select></div>
+                    <div class="field"><label for="e2">Agency notified</label><select class="input select" id="e2"><option>State environmental agency</option><option>EPA</option><option>Not yet notified</option></select></div>
+                    <div class="note warn"><svg width="16" height="16" style="color:var(--warn)"><use href="#i-warn"/></svg><span>This category sends the report to the compliance team for review before the Plant Manager.</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Generation -->
+            <div class="variant" data-variant="gen" hidden>
+              <div class="screen">
+                <div class="title-block">
+                  <span class="class-chip"><i style="background:var(--c-gen)"><svg width="12" height="12"><use href="#i-bolt"/></svg></i>Generation</span>
+                  <h2 style="margin-top:10px">How much generation was lost?</h2>
+                  <p>Generation has a single category, so it's already picked for you.</p>
+                </div>
+                <div class="card">
+                  <div class="card-head"><span class="icon-tile"><svg width="20" height="20"><use href="#i-bolt"/></svg></span><div><h3>Quantities</h3><p>Enter numbers only. Pick the unit on the right.</p></div></div>
+                  <div class="notice-slot" data-fixed="generation"></div>
+                  <div>
+                    <div class="qty"><span class="q">Generation lost</span><div class="field"><label for="g1">Amount</label><input class="input mono" id="g1" value="412" inputmode="decimal" style="text-align:right"></div><div class="field"><label for="g1u">Unit</label><select class="input select" id="g1u"><option>MWh</option><option>MW</option></select></div></div>
+                    <div class="qty"><span class="q">Duration</span><div class="field"><label for="g2">Amount</label><input class="input mono" id="g2" value="3.5" inputmode="decimal" style="text-align:right"></div><div class="field"><label for="g2u">Unit</label><select class="input select" id="g2u"><option>Hours</option><option>Minutes</option></select></div></div>
+                    <div class="qty"><span class="q">Share of one day's full output</span><div class="field"><label for="g3">Percent</label><input class="input mono" id="g3" value="18" inputmode="decimal" style="text-align:right"></div><div class="field"><span class="lbl">&nbsp;</span><span class="pill" style="align-self:flex-start;margin-top:10px">Under the 25% threshold</span></div></div>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="group-label">Forms</div>
+                  <div class="req-row">
+                    <a href="#" onclick="return false">Unit Trip Summary (OPS-07)</a>
+                    <button class="toggle" aria-pressed="false" data-toggle data-show="#g1date"><span class="trk"></span>Sent</button>
+                    <div class="sub" id="g1date" hidden><span style="font-size:12.5px;color:var(--muted)">Sent on</span><input class="input" type="date" value="2026-11-03" style="width:170px;height:36px"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Security -->
+            <div class="variant" data-variant="sec" hidden>
+              <div class="screen">
+                <div class="title-block">
+                  <span class="class-chip"><i style="background:var(--c-sec)"><svg width="12" height="12"><use href="#i-lock"/></svg></i>Security</span>
+                  <h2 style="margin-top:10px">Pick the security category</h2>
+                  <p>Some security events must be reported straight away, not just through this form.</p>
+                </div>
+                <div class="section-grid">
+                  <div class="card">
+                    <div class="group-label">Category</div>
+                    <div class="radio-list" data-radio>
+                      <button class="radio" aria-pressed="true" data-ack="unauth"><span class="o"></span><span class="lbl">Unauthorized access</span><span class="tag pill alert">Immediate notice</span></button>
+                      <button class="radio" aria-pressed="false"><span class="o"></span><span class="lbl">Suspicious activity</span></button>
+                      <button class="radio" aria-pressed="false" data-ack="cyber"><span class="o"></span><span class="lbl">Cyber security concern</span><span class="tag pill alert">Immediate notice</span></button>
+                    </div>
+                    <div class="notice-slot"></div>
+                  </div>
+                  <div class="ack">
+                    <div class="ack-head"><svg width="18" height="18"><use href="#i-warn"/></svg>Immediate notice required</div>
+                    <div class="ack-body">
+                      <p style="margin:0">Call the Plant Manager and the corporate security desk now, before you finish this report.</p>
+                      <div class="kv" style="grid-template-columns:140px minmax(0,1fr)"><dt>Security desk</dt><dd class="mono">555-0142</dd><dt>On-call manager</dt><dd>See the plant duty roster</dd></div>
+                      <button class="toggle" aria-pressed="false" data-toggle><span class="trk"></span>I've made the immediate notification</button>
+                      <span style="font-size:12px;color:var(--muted)">Continue stays disabled until you confirm this.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ATTACHMENTS -->
+          <section class="screen" data-screen="attach" hidden>
+            <div class="title-block">
+              <div class="eyebrow">Supporting files</div>
+              <h2>Attachments</h2>
+              <p>Optional. Add photos, permits or anything that helps explain the event. Up to 5 files.</p>
+            </div>
+            <div class="drop">
+              <div style="display:flex;gap:12px;align-items:center"><span class="icon-tile"><svg width="20" height="20"><use href="#i-clip"/></svg></span><div><b>Add files</b><span>Photos and PDFs work best</span></div></div>
+              <button class="btn btn-outline"><svg width="16" height="16"><use href="#i-plus"/></svg>Choose files</button>
+            </div>
+            <div class="card">
+              <div>
+                <div class="file">
+                  <div class="thumb"><svg width="52" height="52" viewBox="0 0 52 52"><rect width="52" height="52" fill="var(--sky-soft)"/><path d="M0 40l14-14 10 10 8-8 20 20H0z" fill="var(--sky)" opacity=".55"/><circle cx="36" cy="16" r="5" fill="var(--warn)" opacity=".7"/></svg></div>
+                  <div style="min-width:0"><div class="name">stairwell-landing-0745.jpg</div><div class="meta"><span>2.4 MB</span><span class="pill ok"><span class="d" style="background:var(--ok)"></span>Uploaded</span></div></div>
+                  <button class="icon-btn" title="Remove"><svg width="16" height="16"><use href="#i-trash"/></svg></button>
+                  <div class="opts">
+                    <button class="toggle" aria-pressed="true" data-toggle data-show="#a1opts"><span class="trk"></span>Include in PDF</button>
+                    <span id="a1opts" style="display:contents">
+                      <div class="seg" data-seg><button aria-pressed="false">Portrait</button><button aria-pressed="true">Landscape</button></div>
+                      <input class="input" value="Figure 1: Water pooled on the level 2 landing" aria-label="Caption">
+                    </span>
+                  </div>
+                </div>
+                <div class="file">
+                  <div class="thumb" style="color:var(--alert)"><svg width="24" height="24"><use href="#i-doc"/></svg></div>
+                  <div style="min-width:0"><div class="name">work-order-88412.pdf</div><div class="meta"><span>184 KB</span><span class="pill ok"><span class="d" style="background:var(--ok)"></span>Uploaded</span></div></div>
+                  <button class="icon-btn" title="Remove"><svg width="16" height="16"><use href="#i-trash"/></svg></button>
+                </div>
+                <div class="file">
+                  <div class="thumb"><svg width="52" height="52" viewBox="0 0 52 52"><rect width="52" height="52" fill="var(--ok-soft)"/><path d="M0 44l18-16 12 10 22-18v32H0z" fill="var(--ok)" opacity=".45"/></svg></div>
+                  <div style="min-width:0"><div class="name">condensate-line-leak.jpg</div><div class="meta"><span>3.1 MB</span><span class="pill sky">Uploading</span><span class="bar"><i></i></span></div></div>
+                  <button class="icon-btn" title="Cancel upload"><svg width="16" height="16"><use href="#i-x"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ACTIONS -->
+          <section class="screen" data-screen="actions" hidden>
+            <div class="title-block" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between">
+              <div>
+                <div class="eyebrow">Follow-up</div>
+                <h2>Interim and long-term actions</h2>
+                <p>What will stop this from happening again, and who owns it. Skip this step if nothing is needed.</p>
+              </div>
+              <button class="btn btn-primary" id="openTask"><svg width="16" height="16"><use href="#i-plus"/></svg>Add action</button>
+            </div>
+            <div class="task">
+              <h4>Replace condensate drain line gasket, Unit 2 north</h4>
+              <div class="who"><span class="av">SR</span>Sam Ruiz · Maintenance</div>
+              <p>Work order 88412 raised. Check the other three drain lines on the same run.</p>
+              <div class="acts"><button class="icon-btn" title="Edit"><svg width="16" height="16"><use href="#i-edit"/></svg></button><button class="icon-btn" title="Remove"><svg width="16" height="16"><use href="#i-trash"/></svg></button></div>
+            </div>
+            <div class="task">
+              <h4>Add anti-slip treads to stairwell landings</h4>
+              <div class="who"><span class="av">AK</span>Avery Kim · Safety</div>
+              <p>All levels of the north stairwell, both units.</p>
+              <div class="acts"><button class="icon-btn" title="Edit"><svg width="16" height="16"><use href="#i-edit"/></svg></button><button class="icon-btn" title="Remove"><svg width="16" height="16"><use href="#i-trash"/></svg></button></div>
+            </div>
+          </section>
+
+          <!-- REVIEW -->
+          <section class="screen" data-screen="review" hidden>
+            <div class="title-block">
+              <div class="eyebrow">Last step</div>
+              <h2>Check and submit</h2>
+              <p>Once submitted, the report goes to compliance and then your Plant Manager. You won't be able to edit it after that.</p>
+            </div>
+            <div class="card">
+              <div class="timeline" id="timeline">
+                <div class="tl now"><span class="n"></span>Draft</div>
+                <div class="tl"><span class="n"></span>Submitted</div>
+                <div class="tl"><span class="n"></span>Compliance review</div>
+                <div class="tl"><span class="n"></span>Plant Manager review</div>
+                <div class="tl"><span class="n"></span>Completion</div>
+                <div class="tl"><span class="n"></span>Published</div>
+              </div>
+            </div>
+            <div class="grid2" style="align-items:start">
+              <div class="card">
+                <div class="sum-head"><h3>Ready to submit</h3><span class="pill ok">4 of 4 done</span></div>
+                <div class="check"><svg width="16" height="16" style="color:var(--ok)"><use href="#i-check"/></svg>Details complete</div>
+                <div class="check"><svg width="16" height="16" style="color:var(--ok)"><use href="#i-check"/></svg>Every classification has a category</div>
+                <div class="check"><svg width="16" height="16" style="color:var(--ok)"><use href="#i-check"/></svg>Immediate notice confirmed for Security</div>
+                <div class="check"><svg width="16" height="16" style="color:var(--ok)"><use href="#i-check"/></svg>Required forms marked as sent</div>
+              </div>
+              <div class="card">
+                <div class="sum-head"><h3>Additional comments</h3><button class="btn btn-quiet btn-sm"><svg width="14" height="14"><use href="#i-edit"/></svg>Edit</button></div>
+                <p style="margin:0;color:var(--muted);font-size:13.5px">None added. Anything the reviewers should know that doesn't fit elsewhere.</p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="sum-head"><h3>Details</h3><button class="btn btn-quiet btn-sm" data-go="details"><svg width="14" height="14"><use href="#i-edit"/></svg>Edit</button></div>
+              <dl class="kv" style="margin:0">
+                <dt>Title</dt><dd>Contractor slipped on wet stairwell, Unit 2</dd>
+                <dt>Plant and date</dt><dd>Riverside Generating Station · 3 Nov 2026</dd>
+                <dt>Description</dt><dd>At 07:40 a contractor slipped on the Unit 2 north stairwell between levels 2 and 3. Water from a leaking condensate line had pooled on the landing…</dd>
+                <dt>Cause</dt><dd>Failed gasket on the condensate drain line above the landing.</dd>
+                <dt>Business impact</dt><dd style="color:var(--muted)">Not provided</dd>
+              </dl>
+            </div>
+            <div class="card">
+              <div class="sum-head"><h3>Classifications and answers</h3><button class="btn btn-quiet btn-sm" data-go="classes"><svg width="14" height="14"><use href="#i-edit"/></svg>Edit</button></div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <span class="pill"><span class="d" style="background:var(--c-safety)"></span>Safety · Near miss</span>
+                <span class="pill"><span class="d" style="background:var(--c-env)"></span>Environmental · Agency reportable</span>
+                <span class="pill"><span class="d" style="background:var(--c-gen)"></span>Generation</span>
+                <span class="pill"><span class="d" style="background:var(--c-sec)"></span>Security · Unauthorized access</span>
+              </div>
+              <div>
+                <div class="ans"><span class="q">First Aid / Near Miss Report (SF-102)</span><span>Sent 3 Nov 2026</span></div>
+                <div class="ans"><span class="q">Was the right PPE being worn?</span><span>Yes</span></div>
+                <div class="ans"><span class="q">Type of agency reportable event</span><span>CIP</span></div>
+                <div class="ans"><span class="q">Generation lost</span><span class="mono">412 MWh · 3.5 hours · 18%</span></div>
+              </div>
+            </div>
+            <div class="grid2" style="align-items:start">
+              <div class="card">
+                <div class="sum-head"><h3>Attachments</h3><span class="pill">3 files · 1 in PDF</span></div>
+                <div class="ans"><span class="q">stairwell-landing-0745.jpg</span><span>In PDF, landscape</span></div>
+                <div class="ans"><span class="q">work-order-88412.pdf</span><span style="color:var(--muted)">Not in PDF</span></div>
+              </div>
+              <div class="card">
+                <div class="sum-head"><h3>Long-term actions</h3><span class="pill">2 actions</span></div>
+                <div class="ans"><span class="q">Replace drain line gasket</span><span>Sam Ruiz</span></div>
+                <div class="ans"><span class="q">Anti-slip treads on landings</span><span>Avery Kim</span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- APPROVAL (manager view) -->
+          <section class="screen" data-screen="approve" hidden>
+            <div class="title-block" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between">
+              <div>
+                <div class="eyebrow">Plant Manager review</div>
+                <h2>Contractor slipped on wet stairwell, Unit 2</h2>
+                <p>Submitted by Jordan Lee on 3 Nov 2026 at 11:05 AM. Compliance approved on 4 Nov.</p>
+              </div>
+              <span class="pill brand">Pending Plant Manager review</span>
+            </div>
+            <div class="card">
+              <div class="timeline">
+                <div class="tl done"><span class="n"><svg width="12" height="12"><use href="#i-check"/></svg></span>Draft</div>
+                <div class="tl done"><span class="n"><svg width="12" height="12"><use href="#i-check"/></svg></span>Submitted</div>
+                <div class="tl done"><span class="n"><svg width="12" height="12"><use href="#i-check"/></svg></span>Compliance review</div>
+                <div class="tl now"><span class="n"></span>Plant Manager review</div>
+                <div class="tl"><span class="n"></span>Completion</div>
+                <div class="tl"><span class="n"></span>Published</div>
+              </div>
+            </div>
+            <div class="section-grid" style="grid-template-columns:minmax(0,7fr) minmax(0,5fr)">
+              <div class="card">
+                <div class="sum-head"><h3>Summary</h3><button class="btn btn-quiet btn-sm"><svg width="14" height="14"><use href="#i-edit"/></svg>Revise details</button></div>
+                <dl class="kv" style="margin:0;grid-template-columns:150px minmax(0,1fr)">
+                  <dt>Classifications</dt><dd>Safety, Environmental, Generation, Security</dd>
+                  <dt>Description</dt><dd>At 07:40 a contractor slipped on the Unit 2 north stairwell between levels 2 and 3…</dd>
+                  <dt>Cause</dt><dd>Failed gasket on the condensate drain line above the landing.</dd>
+                  <dt>Actions</dt><dd>2 long-term actions, owners assigned</dd>
+                  <dt>Attachments</dt><dd>3 files</dd>
+                </dl>
+                <div class="note"><svg width="16" height="16" style="color:var(--muted)"><use href="#i-people"/></svg><span><b>Compliance (Dana Ortiz):</b> CIP notification confirmed with the state agency on 4 Nov. Approved.</span></div>
+              </div>
+              <div class="card">
+                <div class="card-head"><span class="icon-tile"><svg width="20" height="20"><use href="#i-check"/></svg></span><div><h3>Your decision</h3><p>Approving sends it on for completion</p></div></div>
+                <div class="field"><label for="apComm">Comments</label><textarea class="input" id="apComm" rows="4" placeholder="Optional. Visible to everyone on the report."></textarea></div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+                  <button class="btn btn-outline">Send back for changes</button>
+                  <button class="btn btn-primary" data-go="done">Approve</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- DONE -->
+          <section class="screen" data-screen="done" hidden>
+            <div class="done-wrap">
+              <div class="done-card">
+                <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+                  <circle cx="48" cy="48" r="44" fill="var(--ok-soft)"/>
+                  <circle cx="48" cy="48" r="34" fill="none" stroke="var(--ok)" stroke-width="4" stroke-dasharray="214" stroke-dashoffset="214"><animate attributeName="stroke-dashoffset" from="214" to="0" dur=".7s" fill="freeze"/></circle>
+                  <path d="M33 49l10 10 20-22" fill="none" stroke="var(--ok)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="48" stroke-dashoffset="48"><animate attributeName="stroke-dashoffset" from="48" to="0" begin=".5s" dur=".4s" fill="freeze"/></path>
+                </svg>
+                <h2>Report submitted</h2>
+                <p>RGS-2026-014 is with the compliance team. You'll get an email when it moves to the next step.</p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">
+                  <button class="btn btn-outline" data-go="review">View report</button>
+                  <button class="btn btn-primary" data-go="start">Return home</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
+
+    <footer class="footer" id="footer">
+      <button class="btn btn-quiet" id="fBack"><svg width="16" height="16"><use href="#i-back"/></svg>Back</button>
+      <span class="hint" id="fHint">Your draft saves every time you continue</span>
+      <span class="grow"></span>
+      <button class="btn btn-outline" id="fLeave">Save and exit</button>
+      <button class="btn btn-primary" id="fNext">Continue<svg width="16" height="16"><use href="#i-next"/></svg></button>
+    </footer>
+
+    <!-- error banner -->
+    <div class="banner" id="banner" role="alert" hidden>
+      <svg width="20" height="20" style="color:var(--alert);flex:0 0 auto"><use href="#i-warn"/></svg>
+      <div><b>Your answers weren't saved</b><span>The connection dropped while saving Environmental. Nothing was lost on this screen. Press Continue to try again.</span></div>
+      <button class="icon-btn x" id="bannerX" title="Dismiss"><svg width="14" height="14"><use href="#i-x"/></svg></button>
+    </div>
+
+    <!-- busy cover -->
+    <div class="overlay" id="busy" hidden aria-live="polite">
+      <div class="scrim"></div>
+      <div class="busy-art">
+        <svg viewBox="0 0 360 260" role="img" aria-label="Saving">
+          <rect x="10" y="10" width="340" height="240" rx="22" fill="var(--surface)" stroke="var(--line)"/>
+          <circle cx="180" cy="92" r="52" fill="var(--primary)" fill-opacity=".08"><animate attributeName="r" values="48;56;48" dur="2.4s" repeatCount="indefinite"/></circle>
+          <circle cx="180" cy="92" r="28" fill="none" stroke="var(--line)" stroke-width="6"/>
+          <circle cx="180" cy="92" r="28" fill="none" stroke="var(--primary)" stroke-width="6" stroke-linecap="round" stroke-dasharray="50 130"><animateTransform attributeName="transform" type="rotate" values="0 180 92;360 180 92" dur="1s" repeatCount="indefinite"/></circle>
+          <text x="180" y="172" text-anchor="middle" font-size="17" font-weight="700" fill="var(--ink)" font-family="Open Sans,Segoe UI,sans-serif" id="busyTitle">Saving your answers</text>
+          <text x="180" y="198" text-anchor="middle" font-size="12.5" fill="var(--muted)" font-family="Open Sans,Segoe UI,sans-serif" opacity="0">Saving the section<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;.06;.3;.34;1" dur="5.4s" begin="0s" repeatCount="indefinite"/></text>
+          <text x="180" y="198" text-anchor="middle" font-size="12.5" fill="var(--muted)" font-family="Open Sans,Segoe UI,sans-serif" opacity="0">Updating your report<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;.06;.3;.34;1" dur="5.4s" begin="1.8s" repeatCount="indefinite"/></text>
+          <text x="180" y="198" text-anchor="middle" font-size="12.5" fill="var(--muted)" font-family="Open Sans,Segoe UI,sans-serif" opacity="0">Loading the next step<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;.06;.3;.34;1" dur="5.4s" begin="3.6s" repeatCount="indefinite"/></text>
+          <clipPath id="bc"><rect x="90" y="222" width="180" height="5" rx="2.5"/></clipPath>
+          <rect x="90" y="222" width="180" height="5" rx="2.5" fill="var(--line)"/>
+          <g clip-path="url(#bc)"><rect y="222" width="60" height="5" rx="2.5" fill="var(--primary)"><animate attributeName="x" values="40;290" dur="1.3s" repeatCount="indefinite"/></rect></g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- leave dialog -->
+    <div class="overlay" id="cancel" hidden>
+      <div class="scrim" data-close="cancel"></div>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+        <div class="card-head"><span class="icon-tile"><svg width="20" height="20"><use href="#i-save"/></svg></span><div><h3 id="cTitle">Leave this report?</h3></div></div>
+        <p>Everything up to your last Continue is saved in your draft. Changes on this screen since then will be lost.</p>
+        <div class="foot"><button class="btn btn-outline" data-close="cancel">Keep working</button><button class="btn btn-primary" data-close="cancel" data-go="start">Leave</button></div>
+      </div>
+    </div>
+
+    <!-- acknowledgement pop-up -->
+    <div class="overlay" id="ackDlg" hidden>
+      <div class="scrim"></div>
+      <div class="dialog ack-dlg" role="dialog" aria-modal="true" aria-labelledby="ackTitle">
+        <div class="ack-top"><span class="icon-tile" id="ackIcon"><svg width="20" height="20"><use href="#i-warn"/></svg></span><div><div class="count" id="ackCount">Notice 1 of 2</div><h3 id="ackTitle">Immediate notice required</h3></div></div>
+        <div class="ack-msg" id="ackMsg"></div>
+        <div class="ack-foot"><div class="ack-dots" id="ackDots"></div><button class="btn btn-primary" id="ackBtn">I acknowledge</button></div>
+      </div>
+    </div>
+
+    <!-- add action dialog -->
+    <div class="overlay" id="taskDlg" hidden>
+      <div class="scrim" data-close="taskDlg"></div>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="tTitle" style="width:min(520px,100%)">
+        <div class="card-head"><span class="icon-tile"><svg width="20" height="20"><use href="#i-flag"/></svg></span><div><h3 id="tTitle">Add an action</h3><p>The owner gets a Planner task when the report is submitted</p></div></div>
+        <div class="field"><label for="tName">Action <span class="req">*</span></label><input class="input" id="tName" placeholder="What needs to be done"></div>
+        <div class="field"><label for="tWho">Owner <span class="req">*</span></label><input class="input" id="tWho" placeholder="Search by name or email"></div>
+        <div class="field"><label for="tNotes">Notes</label><textarea class="input" id="tNotes" rows="3" placeholder="Optional"></textarea></div>
+        <div class="foot"><button class="btn btn-outline" data-close="taskDlg">Cancel</button><button class="btn btn-primary" data-close="taskDlg">Add action</button></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">How this screen will be built</h2>
+    <p class="sub" id="notesSub"></p>
+    <ul id="notesList"></ul>
+  </section>
+</div>
+
+<script>
+(function(){
+  var SCREENS = [
+    {id:"start",   name:"Start"},
+    {id:"guide",   name:"Guidance"},
+    {id:"details", name:"Event details"},
+    {id:"classes", name:"Classifications"},
+    {id:"section", name:"Classification section"},
+    {id:"attach",  name:"Attachments"},
+    {id:"actions", name:"Long-term actions"},
+    {id:"review",  name:"Review & submit"},
+    {id:"approve", name:"Manager approval"},
+    {id:"done",    name:"Submitted"}
+  ];
+  // wizard order used by Back / Continue and the rail
+  var FLOW = [
+    {s:"details"},{s:"classes"},
+    {s:"section",v:"safety",label:"Safety"},{s:"section",v:"env",label:"Environmental"},
+    {s:"section",v:"gen",label:"Generation"},{s:"section",v:"sec",label:"Security"},
+    {s:"attach"},{s:"actions"},{s:"review"}
+  ];
+  var NOTES = {
+    start:["Replaces ActionScreen. <code>LoadingScreen</code> runs first, loads the user, settings and every lookup list once, then lands here.",
+           "Two choice tiles are SVG <code>Image</code>s with transparent <code>ModernButton</code> covers. The draft list is a <code>Gallery</code> over drafts created by the current user.",
+           "Resume goes through <code>RouterScreen</code>, which reopens the draft at the first unfinished step.",
+           "Start report creates the record and Event ID once; the button is disabled while it runs, so a double click can't create two events."],
+    guide:["Replaces RequirementScreen. A wrapping <code>Gallery</code> with <code>WrapCount</code>, one card per classification, text from the Classification list.",
+           "Cards are display only, so no component is needed."],
+    details:["Replaces DetailsScreen. <code>ModernTextInput</code> fields in a wrapping AutoLayout row, two columns on wide screens, one on a phone.",
+             "The cause toggle is an SVG segmented control. The Cause box shows only when the cause is known.",
+             "Continue saves Title, Description, Cause and Business Impact with a fresh LookUp and explicit columns. Nothing edits <code>gblEvent</code> in memory."],
+    classes:["Replaces ClassificationScreen and <code>Comp_Classifications</code>. A <code>Gallery</code> over a local collection with a Selected column.",
+             "The count line under the tiles updates as you tick, so people know how many sections are coming.",
+             "Continue saves the classifications and removes categories that belong to anything unticked."],
+    section:["One screen, <code>ClassificationStepScreen</code>, replaces Safety, Environmental, NERC, Generation, Property Damage, Security and Other.",
+             "Category list, forms, questions and quantities are galleries over collections built from lookup data loaded at start, so picking a category is instant.",
+             "When a classification has one category (Generation, Property Damage, Other) the picker is hidden and the category is chosen automatically.",
+             "Picking a category opens its acknowledgement pop-up: one message at a time, each with I acknowledge. Messages come from the Popup list, with the category\u2019s immediate-notice message first when it has one. Single-category sections show it once on arrival.",
+             "The category\u2019s notices stay as chips under the list (the old <code>Comp_Popups</code> tiles), so they can be reread at any time.",
+             "Immediate-notice categories show the red panel and keep Continue disabled until the toggle is on.",
+             "Saved answers are read back from the audit list on entry; Continue updates existing rows rather than adding new ones."],
+    attach:["Replaces AttachmentsScreen. The upload button stays the shared <code>GBL_Attachments</code> component and its flow.",
+            "Each file shows Uploading until the flow returns, then Uploaded. The library is refreshed straight away so files appear without a delay.",
+            "Include in PDF, orientation and caption save as soon as they change. There's no separate save icon to forget."],
+    actions:["Replaces LTAScreen. Task cards are a <code>Gallery</code>; Add action opens a modal (<code>GroupContainer</code> overlay, last in the tree).",
+             "Each add, edit or remove saves that one task. There is no bulk save of the whole list, which was a source of the VersionNumber error."],
+    review:["Replaces the draft half of ReviewScreen. Each section card has an Edit button that jumps to that step.",
+            "The status timeline is a single SVG <code>Image</code> drawn from the report's status.",
+            "Submit stays disabled until the checklist is complete, and the tooltip says what's missing.",
+            "Compliance routing uses the categories picked on this report, not every category."],
+    approve:["Replaces the approval half of ReviewScreen. Shown only to the role whose turn it is: compliance or the plant's approving manager.",
+             "Approve writes the approval record once, then the status. If the status write fails, the button becomes Retry and re-sends only the status.",
+             "Send back for changes and Revise details are limited to managers and compliance."],
+    done:["Replaces ClosingScreen. The tick is an animated SVG <code>Image</code>.",
+          "Return home clears the current report and goes back to the start."]
+  };
+  var ACKS = {
+    nearmiss:[{kind:"sky",title:"Share at the safety meeting",msg:["Near misses are reviewed at the next site safety meeting.","Remove people's names and faces from any photos before you attach them."]}],
+    recordable:[{kind:"alert",title:"Immediate notice required",msg:["Call the Plant Manager and the corporate safety lead now, before you finish this report.","Don't wait for the report to be submitted."]},
+                 {kind:"warn",title:"OSHA recordkeeping",msg:["This injury may need to go on the OSHA 300 log within 7 days.","The site safety coordinator will confirm once the report is submitted."]}],
+    losttime:[{kind:"alert",title:"Immediate notice required",msg:["Call the Plant Manager and the corporate safety lead now, before you finish this report."]},
+              {kind:"warn",title:"Return-to-work paperwork",msg:["HR needs the injured person's return-to-work date. Add it to the description when you know it."]}],
+    agency:[{kind:"warn",title:"Compliance team notified",msg:["Agency-reportable events go to the compliance team before the Plant Manager.","Check the permit's reporting deadline. Some agencies need notice within 24 hours."]}],
+    unauth:[{kind:"alert",title:"Immediate notice required",msg:["Call the corporate security desk on 555-0142 and your Plant Manager now.","Don't disturb the area until security has been in touch."]}],
+    cyber:[{kind:"alert",title:"Immediate notice required",msg:["Don't disconnect anything. Call the corporate security desk on 555-0142 now.","They'll tell you what to isolate and who else to tell."]}],
+    generation:[{kind:"sky",title:"When generation loss is reportable",msg:["Losses under 25% of one day's full plant output don't need a report unless the Plant Director asks for one.","Outage delays only need a report if the Plant Director asks for one."]}]
+  };
+  var ICON = {alert:"#i-warn", warn:"#i-warn", sky:"#i-info"};
+  var ackQueue = [], ackPos = 0, ackKey = null, ackDone = {};
+  function showAck(key){
+    var list = ACKS[key]; if (!list || !list.length) return;
+    ackQueue = list; ackPos = 0; ackKey = key; drawAck();
+    $("#ackDlg").hidden = false; $("#ackBtn").focus();
+  }
+  function drawAck(){
+    var a = ackQueue[ackPos];
+    var ic = $("#ackIcon"); ic.className = "icon-tile " + a.kind; ic.innerHTML = '<svg width="20" height="20"><use href="' + ICON[a.kind] + '"/></svg>';
+    $("#ackCount").textContent = ackQueue.length > 1 ? "Notice " + (ackPos+1) + " of " + ackQueue.length : "Notice";
+    $("#ackTitle").textContent = a.title;
+    $("#ackMsg").innerHTML = a.msg.map(function(m){ return "<p>" + m + "</p>"; }).join("");
+    $("#ackDots").innerHTML = ackQueue.length > 1 ? ackQueue.map(function(_, i){ return '<i class="' + (i < ackPos ? "seen" : i === ackPos ? "on" : "") + '"></i>'; }).join("") : "";
+    $("#ackBtn").textContent = ackPos < ackQueue.length - 1 ? "I acknowledge, next" : "I acknowledge";
+  }
+  function drawNotices(){
+    $$(".notice-slot").forEach(function(slot){
+      var key = slot.dataset.fixed;
+      if (!key){
+        var card = slot.closest(".card");
+        var sel = card ? card.querySelector('.radio[aria-pressed="true"]') : null;
+        key = sel ? sel.dataset.ack : null;
+      }
+      var list = key ? ACKS[key] : null;
+      if (!list){ slot.innerHTML = ""; return; }
+      slot.innerHTML = '<div class="group-label">Notices for this category</div><div class="notice-chips">' +
+        list.map(function(a){
+          return '<button class="notice-chip" data-reopen="' + key + '"><svg width="14" height="14" style="color:var(--' + a.kind + ')"><use href="' + ICON[a.kind] + '"/></svg>' + a.title +
+                 (ackDone[key] ? ' <span class="ackd">Acknowledged</span>' : '') + '</button>';
+        }).join("") + '</div>';
+    });
+  }
+  var state = {screen:"start", variant:"safety"};
+
+  var $ = function(s,r){return (r||document).querySelector(s)};
+  var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+  // screen chips
+  var chipRow = $("#screenChips");
+  SCREENS.forEach(function(sc){
+    var b = document.createElement("button");
+    b.className = "chip"; b.textContent = sc.name; b.dataset.screen = sc.id;
+    b.addEventListener("click", function(){ go(sc.id); });
+    chipRow.appendChild(b);
+  });
+
+  function flowIndex(){
+    for (var i=0;i<FLOW.length;i++){
+      if (FLOW[i].s===state.screen && (!FLOW[i].v || FLOW[i].v===state.variant)) return i;
+    }
+    return -1;
+  }
+
+  var genShown = false;
+  function go(id, v){
+    state.screen = id; if (v) state.variant = v;
+    render();
+    if (id==="section" && state.variant==="gen" && !genShown){ genShown = true; setTimeout(function(){ showAck("generation"); }, 150); }
+    var c = $("#content"); if (c) c.scrollTop = 0;
+  }
+
+  function render(){
+    $$(".screen[data-screen]").forEach(function(el){ el.hidden = el.dataset.screen !== state.screen; });
+    $$(".variant").forEach(function(el){ el.hidden = el.dataset.variant !== state.variant; });
+    $$("#screenChips .chip").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.screen===state.screen); });
+    $$("#variantRow .chip").forEach(function(b){ b.setAttribute("aria-pressed", state.screen==="section" && b.dataset.variant===state.variant); });
+    $("#variantRow").style.opacity = state.screen==="section" ? "1" : ".5";
+
+    // rail
+    var idx = flowIndex();
+    $$("#rail .step").forEach(function(b){
+      var bi = -1;
+      for (var i=0;i<FLOW.length;i++){ if (FLOW[i].s===b.dataset.go && (!FLOW[i].v || FLOW[i].v===b.dataset.v)) bi = i; }
+      b.classList.remove("done","current");
+      var after = ["review","approve","done"].indexOf(state.screen) >= 0 && state.screen!=="review";
+      if (bi === idx) b.classList.add("current");
+      else if ((idx>=0 && bi < idx) || after) b.classList.add("done");
+      var dot = b.querySelector(".dot");
+      if (!b.classList.contains("sub")){
+        if (b.classList.contains("done")) dot.innerHTML = '<svg width="12" height="12"><use href="#i-check"/></svg>';
+        else dot.textContent = b.dataset.n || (b.dataset.n = dot.textContent.replace(/\D/g,"") || dot.textContent);
+      }
+    });
+    var railOn = idx >= 0;
+    $("#rail").style.visibility = (state.screen==="start"||state.screen==="guide") ? "hidden" : "visible";
+
+    // mobile step
+    if (railOn){
+      var f = FLOW[idx];
+      $("#mStepName").textContent = f.label || (SCREENS.filter(function(s){return s.id===f.s})[0].name);
+      $("#mStepCount").textContent = "Step " + (idx+1) + " of " + FLOW.length;
+      $("#mStepBar").style.width = Math.round((idx+1)/FLOW.length*100) + "%";
+    } else {
+      var nm = SCREENS.filter(function(s){return s.id===state.screen})[0].name;
+      $("#mStepName").textContent = nm; $("#mStepCount").textContent = ""; $("#mStepBar").style.width = state.screen==="done"?"100%":"0%";
+    }
+    $(".mobile-step").style.visibility = (state.screen==="start") ? "hidden" : "visible";
+
+    // top bar
+    $("#topId").textContent = state.screen==="start" ? "No report open" :
+      state.screen==="guide" ? "New report" :
+      state.screen==="approve" ? "RGS-2026-014 · Pending review" :
+      state.screen==="done" ? "RGS-2026-014 · Submitted" : "RGS-2026-014 · Draft";
+
+    // footer
+    var footer = $("#footer"), back = $("#fBack"), next = $("#fNext"), leave = $("#fLeave"), hint = $("#fHint");
+    footer.hidden = (state.screen==="start" || state.screen==="done");
+    back.hidden = false; leave.hidden = false; hint.hidden = false;
+    next.innerHTML = 'Continue<svg width="16" height="16"><use href="#i-next"/></svg>';
+    next.disabled = false; next.title = "";
+    if (state.screen==="guide"){ leave.hidden = true; hint.textContent = "Nothing is saved until the next screen"; }
+    else if (state.screen==="review"){ next.innerHTML = 'Submit report'; hint.textContent = "You can't edit the report after submitting"; }
+    else if (state.screen==="approve"){ footer.hidden = true; }
+    else { hint.textContent = "Your draft saves every time you continue"; }
+    if (state.screen==="section" && state.variant==="sec"){
+      var t = $('[data-variant="sec"] [data-toggle]');
+      if (t && t.getAttribute("aria-pressed")!=="true"){ next.disabled = true; next.title = "Confirm the immediate notification first"; }
+    }
+
+    drawNotices();
+
+    // notes
+    $("#notesSub").textContent = SCREENS.filter(function(s){return s.id===state.screen})[0].name;
+    $("#notesList").innerHTML = (NOTES[state.screen]||[]).map(function(n){return "<li>"+n+"</li>"}).join("");
+  }
+
+  function busyThen(fn, title){
+    var b = $("#busy");
+    $("#busyTitle").textContent = title || "Saving your answers";
+    b.hidden = false;
+    setTimeout(function(){ b.hidden = true; fn(); }, 1100);
+  }
+
+  $("#fNext").addEventListener("click", function(){
+    if (state.screen==="guide"){ busyThen(function(){ go("details"); }, "Creating your report"); return; }
+    if (state.screen==="review"){ busyThen(function(){ go("done"); }, "Submitting your report"); return; }
+    var i = flowIndex();
+    if (i>=0 && i<FLOW.length-1){ var n = FLOW[i+1]; busyThen(function(){ go(n.s, n.v); }); }
+  });
+  $("#fBack").addEventListener("click", function(){
+    if (state.screen==="guide"){ go("start"); return; }
+    var i = flowIndex();
+    if (i===0){ go("guide"); return; }
+    if (i>0){ var p = FLOW[i-1]; go(p.s, p.v); }
+  });
+  $("#fLeave").addEventListener("click", function(){ $("#cancel").hidden = false; });
+
+  document.addEventListener("click", function(e){
+    var g = e.target.closest("[data-go]");
+    if (g){ e.preventDefault(); go(g.dataset.go, g.dataset.v); }
+    var c = e.target.closest("[data-close]");
+    if (c){ $("#"+c.dataset.close).hidden = true; }
+    var tg = e.target.closest("[data-toggle]");
+    if (tg){
+      var on = tg.getAttribute("aria-pressed")!=="true";
+      tg.setAttribute("aria-pressed", on);
+      if (tg.dataset.show){ var t = $(tg.dataset.show); if (t){ t.hidden = !on; t.style.display = on ? (t.tagName==="SPAN"?"contents":"") : "none"; } }
+      render();
+    }
+    var r = e.target.closest("[data-radio] .radio");
+    if (r){
+      var was = r.getAttribute("aria-pressed")==="true";
+      $$(".radio", r.parentNode).forEach(function(x){ x.setAttribute("aria-pressed", x===r); });
+      drawNotices();
+      if (!was && r.dataset.ack) showAck(r.dataset.ack);
+    }
+    var ro = e.target.closest("[data-reopen]");
+    if (ro){ showAck(ro.dataset.reopen); }
+    var s = e.target.closest(".seg button, [data-seg] button");
+    if (s && !s.dataset.cause){ $$("button", s.parentNode).forEach(function(x){ x.setAttribute("aria-pressed", x===s); }); }
+  });
+
+  // classification tiles
+  function updateClassCount(){
+    var on = $$("#classTiles .tile").filter(function(t){return t.getAttribute("aria-pressed")==="true"});
+    var names = on.map(function(t){return t.querySelector("b").textContent});
+    $("#classCount span").innerHTML = on.length ? "<b>" + on.length + (on.length===1?" section":" sections") + " to complete:</b> " + names.join(", ") + "." : "<b>Pick at least one classification to continue.</b>";
+  }
+  $$("#classTiles .tile").forEach(function(t){
+    t.addEventListener("click", function(){ t.setAttribute("aria-pressed", t.getAttribute("aria-pressed")!=="true"); updateClassCount(); });
+  });
+
+  // start choice
+  $$("#startChoice .choice").forEach(function(c){
+    c.addEventListener("click", function(){ $$("#startChoice .choice").forEach(function(x){ x.setAttribute("aria-pressed", x===c); }); });
+  });
+
+  // cause
+  $$("#causeSeg button").forEach(function(b){
+    b.addEventListener("click", function(){
+      $$("#causeSeg button").forEach(function(x){ x.setAttribute("aria-pressed", x===b); });
+      var yes = b.dataset.cause==="yes";
+      $("#causeField").hidden = !yes; $("#causeNoNote").hidden = yes;
+    });
+  });
+
+  // variant chips
+  $$("#variantRow .chip").forEach(function(b){ b.addEventListener("click", function(){ go("section", b.dataset.variant); }); });
+
+  // states
+  $("#showBusy").addEventListener("click", function(){ busyThen(function(){}, "Saving your answers"); });
+  $("#showCancel").addEventListener("click", function(){ $("#cancel").hidden = false; });
+  $("#showError").addEventListener("click", function(){ if (state.screen==="start") go("section","env"); $("#banner").hidden = false; });
+  $("#bannerX").addEventListener("click", function(){ $("#banner").hidden = true; });
+  $("#openTask").addEventListener("click", function(){ $("#taskDlg").hidden = false; });
+
+  $("#ackBtn").addEventListener("click", function(){
+    if (ackPos < ackQueue.length - 1){ ackPos++; drawAck(); return; }
+    ackDone[ackKey] = true; $("#ackDlg").hidden = true; drawNotices();
+  });
+  $("#showAck").addEventListener("click", function(){
+    if (state.screen !== "section" || state.variant !== "safety") go("section","safety");
+    var r = $('[data-variant="safety"] .radio[data-ack="recordable"]');
+    $$(".radio", r.parentNode).forEach(function(x){ x.setAttribute("aria-pressed", x===r); });
+    drawNotices(); showAck("recordable");
+  });
+
+  // theme
+  function setTheme(t){
+    try{ document.documentElement.setAttribute("data-theme", t); }catch(e){}
+    $$("[data-theme-btn]").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.themeBtn===t); });
+  }
+  $$("[data-theme-btn]").forEach(function(b){ b.addEventListener("click", function(){ setTheme(b.dataset.themeBtn); }); });
+  var initial = document.documentElement.getAttribute("data-theme") || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  $$("[data-theme-btn]").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.themeBtn===initial); });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key==="Escape"){ ["cancel","taskDlg"].forEach(function(id){ $("#"+id).hidden = true; }); }
+  });
+
+  render();
+})();
+</script>
+
+</body></html>
